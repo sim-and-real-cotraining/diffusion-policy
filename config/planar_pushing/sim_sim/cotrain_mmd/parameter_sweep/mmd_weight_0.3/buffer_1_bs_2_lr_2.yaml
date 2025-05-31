@@ -1,0 +1,168 @@
+# config for target conditioned experiments with image obs
+
+_target_: diffusion_policy.workspace.train_diffusion_mmd_loss_workspace.TrainDiffusionMmdLossWorkspace
+checkpoint:
+  - save_last_ckpt: true
+    save_last_snapshot: false
+    topk:
+      format_str: epoch={epoch:04d}-val_loss_0={val_denoiser_loss_0:.4f}-val_ddim_mse_0={val_ddim_mse_0:.4f}.ckpt
+      k: 7
+      mode: max
+      monitor_key: epoch
+dataloader:
+  batch_size: 256
+  num_workers: 8
+  persistent_workers: false
+  pin_memory: true
+  shuffle: true
+dataset_obs_steps: 2
+ema:
+  _target_: diffusion_policy.model.diffusion.ema_model.EMAModel
+  inv_gamma: 1.0
+  max_value: 0.9999
+  min_value: 0.0
+  power: 0.75
+  update_after_step: 0
+exp_name: defaults
+horizon: 16
+keypoint_visible_rate: 1.0
+logging:
+  group: null
+  id: null
+  mode: online
+  name: diffusion_mmd_loss
+  project: diffusion_policy_debug
+  resume: true
+  tags:
+  - train_diffusion_unet_hybrid
+  - pusher
+  - hw
+  - default
+multi_run:
+  run_dir: data/outputs/2023.02.12/train_diffusion_unet_hybrid_pusher
+  wandb_name_base: 2023.02.12_train_diffusion_unet_hybrid_pusher
+n_action_steps: 8
+n_latency_steps: 0
+n_obs_steps: 2
+name: train_diffusion_unet_hybrid
+obs_as_global_cond: true
+optimizer:
+  _target_: torch.optim.AdamW
+  betas:
+  - 0.95
+  - 0.999
+  eps: 1.0e-08
+  lr: 0.0004
+  weight_decay: 1.0e-06
+past_action_visible: false
+shape_meta:
+  action:
+    shape:
+    - 2
+  obs:
+    agent_pos:
+      shape:
+      - 3
+      type: low_dim
+    overhead_camera:
+      shape:
+      - 3
+      - 128
+      - 128
+      type: rgb
+    wrist_camera:
+      shape:
+      - 3
+      - 128
+      - 128
+      type: rgb
+policy:
+  _target_: diffusion_policy.policy.diffusion_unet_hybrid_image_targeted_policy.DiffusionUnetHybridImageTargetedPolicy
+  cond_predict_scale: true
+  crop_shape:
+  - 112
+  - 112
+  diffusion_step_embed_dim: 128
+  down_dims:
+  - 256
+  - 512
+  - 1024
+  eval_fixed_crop: true
+  horizon: 16
+  kernel_size: 5
+  n_action_steps: 8
+  n_groups: 8
+  n_obs_steps: 2
+  noise_scheduler:
+    _target_: diffusers.schedulers.scheduling_ddpm.DDPMScheduler
+    beta_end: 0.02
+    beta_schedule: squaredcos_cap_v2
+    beta_start: 0.0001
+    clip_sample: true
+    num_train_timesteps: 100
+    prediction_type: epsilon
+    variance_type: fixed_small
+  num_inference_steps: 100
+  obs_as_global_cond: true
+  obs_encoder_group_norm: true
+  use_target_cond: true
+  target_dim: 3
+  shape_meta: ${shape_meta}
+  pretrained_encoder: false
+task:
+  dataset:
+    _target_: diffusion_policy.dataset.planar_pushing_dataset.PlanarPushingDataset
+    shape_meta: ${shape_meta}
+    use_one_hot_encoding: true
+    horizon: 16
+    n_obs_steps: 2
+    pad_after: 7
+    pad_before: 1
+    seed: 42
+    zarr_configs:
+    - path: data/planar_pushing_cotrain/sim_sim_tee_data_carbon.zarr
+      max_train_episodes: 50
+      sampling_weight: 1.0
+      val_ratio: 0.0625 # 10 / 160 trajectories
+    - path: data/planar_pushing_cotrain/sim2sim_cotrain_data.zarr
+      max_train_episodes: 2000
+      sampling_weight: 1.0
+      val_ratio: 0.00562 # ~50 / 8897 trajectories
+  name: scene_image
+  shape_meta: ${shape_meta} # not used?
+task_name: planar_pushing
+training:
+  checkpoint_every: 5
+  debug: false
+  device: cuda
+  gradient_accumulate_every: 1
+  lr_scheduler: cosine
+  lr_warmup_steps: 500
+  max_train_steps: null
+  max_val_steps: null
+  num_epochs: 30
+  resume: true
+  rollout_every: ${training.checkpoint_every}
+  sample_every: ${training.checkpoint_every}
+  seed: 42
+  tqdm_interval_sec: 60.0
+  use_ema: true
+  val_every: 5
+  log_val_mse: true
+  eval_mse_DDPM: true
+  eval_mse_DDIM: true
+  mmd_config:
+    bandwidths: [0.25, 0.5, 1.0, 2.0, 4.0]
+    base_bandwidth: null # compute from data
+    mmd_weight: 0.3
+    embedding_buffer_batches: 1
+    embedding_module_name: null # null for observation embedding
+# val_dataloader smaller than train_dataloader
+# since some datasets are very small
+val_dataloader:
+  batch_size: 256
+  num_workers: 8
+  persistent_workers: false
+  pin_memory: true
+  drop_last: true
+  shuffle: true

@@ -1,0 +1,15 @@
+_target_: data_generation.maze.workspace.single_maze_rrt_star_workspace.SingleMazeRRTStarWorkspace
+source:
+- 2.5
+- 2.5
+num_trajectories: 50000
+data_dir: 'data_generation/maze_data_rrt_star'
+zarr_name: 'rrt_star.zarr'
+
+# RRTstar settings
+reset_every_trajectory: false
+max_samples: 5000
+num_shortcut_attempts: 0
+
+tqdm_interval: 30.0
+task_id: null
