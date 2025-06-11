@@ -1,0 +1,16 @@
+_target_: data_generation.maze.workspace.single_maze_gcs_workspace.SingleMazeGCSWorkspace
+source:
+- 2.5
+- 2.5
+num_trajectories: 50000
+data_dir: 'data_generation/maze_data_gcs'
+zarr_name: 'gcs.zarr'
+
+# GCS settings
+max_rounded_paths: 10
+max_velocity: 1.0
+continuity_order: 1
+bezier_order: 3
+
+tqdm_interval: 30.0
+task_id: null

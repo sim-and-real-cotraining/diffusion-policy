@@ -1,0 +1,45 @@
+_target_: data_generation.maze.maze_data_generation_workspace.MazeDataGenerationWorkspace
+environment_generator:
+  min_num_obstacles: 10
+  max_num_obstacles: 15
+  min_obstacle_width: 0.2
+  max_obstacle_width: 1.5
+  min_obstacle_height: 0.2
+  max_obstacle_height: 1.5
+  border_padding: 0.3
+  obstacle_padding: 0.1
+  bounds:
+  - [0, 5.0]
+  - [0, 5.0]
+  non_overlapping_centers: true
+
+# Collection V1
+# 6250 trajectories per process
+# Triples mode: [2,40,1] (total of 500k trajectories)
+# num_mazes_per_proc: 25
+# num_trajectories_per_maze: 250
+
+# Collection V2
+# 6250 trajectories per process
+# Triples mode: [2,40,1] (total of 200k trajectories from 10k mazes)
+# num_mazes_per_proc: 3125
+# num_trajectories_per_maze: 2
+
+# Debug collection
+# 25 trajectories per process
+num_mazes_per_proc: 5
+num_trajectories_per_maze: 5
+
+num_processes: 1
+data_dir: 'data_generation/test_maze_data'
+append_date_time: false
+image_size:
+- 64
+- 64
+
+max_rounded_paths: 10
+max_velocity: 1.0
+continuity_order: 1
+bezier_order: 3
+
+task_id: null

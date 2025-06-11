@@ -1,0 +1,30 @@
+# config for target conditioned experiments with image obs
+
+_target_: diffusion_policy.workspace.train_binary_classifier_workspace.TrainBinaryClassifierWorkspace
+name: action_classification
+dataloader:
+  batch_size: 256
+  num_workers: 8
+  persistent_workers: false
+  pin_memory: true
+optimizer:
+  _target_: torch.optim.AdamW
+  betas:
+  - 0.95
+  - 0.999
+  eps: 1.0e-08
+  lr: 0.0001
+  weight_decay: 1.0e-06
+model:
+  _target_: diffusion_policy.model.classification.binary_classifier.BinaryClassifier
+  input_dim: 32
+  layer_sizes: [64, 64, 32]
+dataset:
+  _target_: diffusion_policy.dataset.binary_classification_dataset.BinaryClassificationDataset
+  data_0_path: "/home/adam/workspace/gcs-diffusion/data/experiments/cotrain/scaled_mixing/50_500_3_1/real_actions.npy"
+  data_1_path: "/home/adam/workspace/gcs-diffusion/data/experiments/cotrain/scaled_mixing/50_500_3_1/sim_actions.npy"
+val_split: 0.2
+training:
+  device: cuda
+  num_epochs: 20
+  seed: 42
