@@ -1,4 +1,79 @@
-# Diffusion Policy
+# Diffusion Policy (Cotraining)
+[[Project page]](https://sim-and-real-cotraining.github.io/)
+[[Paper]](https://arxiv.org/abs/2503.22634)
+[[Data Generation Code]](https://github.com/sim-and-real-cotraining/planning-through-contact)
+
+[Adam Wei](https://adamwei.com/)<sup>1</sup>,
+[Abhinav Agarwal](https://sites.mit.edu/abhinav/)<sup>1</sup>,
+[Boyuan Chen](https://boyuan.space/)<sup>1</sup>,
+[Rohan Bosworth](https://www.linkedin.com/in/rohan-b-92940b201)<sup>1</sup>,
+[Nicholas Pfaff](https://nepfaff.github.io/)<sup>1</sup>,
+[Russ Tedrake](https://locomotion.csail.mit.edu/russt.html)<sup>1,2</sup>,
+
+<sup>1</sup>MIT,
+<sup>2</sup>Toyota Research Institute,
+
+<img src="media/anchor_white_background.png" alt="drawing" width="100%"/>
+
+This repository was used to train all the policies in our paper on the [Empirical Analysis of Sim-and-Real Cotraining of Diffusion Policies for Planar Pushing from Pixels](https://arxiv.org/abs/2503.22634). It forks the original [diffusion_policy](git@github.com:real-stanford/diffusion_policy.git) repository (the original README is appended below).
+
+## Installation
+See the [installation instructions](#installation-1) from the original README.
+
+## Training Scripts
+To launch a training run (see original README for more details):
+```
+python train.py --config-dir=<config-dir> --config-name=<config-name> hydra.run.dir=<output-dir> <hydra-overrides (optional)>
+```
+To launch a training run on MIT Supercloud, modify `CONFIG_DIR`, `CONFIG_NAME` and `HYDRA_RUN_DIR` in `submit_training.sh`. Then run:
+```
+LLsub ./submit_training.sh -s <num_cpu_cores (ex. 20)> -g <GPUs, (ex volta:1)>
+```
+Here is an example of using `submit_trainings.sh` to batch launch multiple training jobs on supercloud:
+```
+# From root of repository...
+mkdir config/submit_trainings
+cp <configs> config/submit_trainings
+python submit_trainings.py --config_dir config/submit_trainings --hydra_run_dir <output-dir>
+```
+This will submit each training run (specified by each config file in `config/submit_trainings`) to MIT Supercloud. The outputs for each training run will be saved under `<output-dir>/<config-name>`. The script will output a summary of all the submitted jobs, including the submission command and the corresponding process ID.
+
+
+## Training Code
+This fork provides new `workspace`, `dataset`, and `policy` classes and hydra configuration files for cotraining.
+
+### Workspaces
+* `diffusion_policy/workspace/train_diffusion_unet_hybrid_workspace_no_env`: workspace for most cotraining experiments.
+* `diffusion_policy/workspace/train_cfg_unet_hybrid_workspace`: workspace for classifier-free guidance ablations.
+* `diffusion_policy/workspace
+/train_diffusion_mmd_loss_workspace.py`: workspace for MMD ablations.
+* `diffusion_policy/workspace/train_diffusion_adversarial_loss_workspace.py`: workspace for GAN ablations. Only available on the `GAN` branch.
+
+### Datasets
+* `diffusion_policy/dataset/planar_pushing_dataset`: Handles cotraining from multiple datasets. Provides one hot encodings and different mixing ratios.
+
+### Policy
+* `diffusion_policy/policy/diffusion_unet_hybrid_image_targeted_policy`: Diffusion with UNet achitecture and target conditioning.
+
+### Configuration Files
+* `config/planar_pushing/cotrain`: configs for real-world experiments.
+* `config/planar_pushing/sim_sim`: configs for all the simulation experiments. Includes distribution shift, finetuning, MMD, GAN, one hot encoding, classifier-free guidance experiments.
+* `config/binary_classification`: configs for binary probing experiments (see the note below for extracting embeddings).
+
+### Misc. Experiments
+The plotting code for the kNN experiments is on the `knn-experiments` branch.
+```
+git checkout knn-experiments
+
+# generates the knn figure from the paper
+python scripts/run_knn_experiments_iros.py
+
+# generates an animated knn plot (see project page: https://sim-and-real-cotraining.github.io/)
+python scripts/animated_knn_plot.py
+```
+**Note:** You may need to generate the observation and action embeddings first with `scripts/save_embeddings.py` (for observation embeddings) or `scripts/save_activations` (for embeddings at any layer of the network).
+
+# Original Diffusion Policy README
 
 [[Project page]](https://diffusion-policy.cs.columbia.edu/)
 [[Paper]](https://diffusion-policy.cs.columbia.edu/#paper)
@@ -64,7 +139,7 @@ To download all files in a subdirectory, use:
 $ wget --recursive --no-parent --no-host-directories --relative --reject="index.html*" https://diffusion-policy.cs.columbia.edu/data/experiments/low_dim/square_ph/diffusion_policy_cnn/
 ```
 
-## 🛠️ Installation
+## Installation
 ### 🖥️ Simulation
 To reproduce our simulation benchmark results, install our conda environment on a Linux machine with Nvidia GPU. On Ubuntu 20.04 you need to install the following apt packages for mujoco:
 ```console
